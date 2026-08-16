@@ -1,0 +1,39 @@
+appId: com.barevent.manager
+productName: BarEvent Manager Pro
+copyright: Copyright © 2026 BarEvent Manager Pro
+
+directories:
+  buildResources: build
+  output: dist
+
+files:
+  - out/**/*
+  - package.json
+  - '!**/*.map'
+
+# Migrations do Drizzle não são código JS/TS importado por nenhum módulo, então
+# o bundler (esbuild/rollup) não as inclui automaticamente em out/ — precisam
+# ser copiadas manualmente. main/db/migrate.ts lê daqui via process.resourcesPath
+# quando app.isPackaged.
+extraResources:
+  - from: src/main/db/migrations
+    to: migrations
+
+# better-sqlite3 é um módulo nativo (.node) — não pode rodar de dentro do
+# arquivo .asar compactado, precisa ficar como arquivo solto ao lado.
+asarUnpack:
+  - '**/node_modules/better-sqlite3/**/*'
+
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: BarEvent Manager Pro

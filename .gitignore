@@ -1,0 +1,12 @@
+node_modules
+out
+dist
+dist-electron
+release
+*.log
+.DS_Store
+*.db
+*.db-journal
+test-results
+playwright-report
+blob-report
