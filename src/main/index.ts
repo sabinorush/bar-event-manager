@@ -9,6 +9,16 @@ import { initAutoUpdater } from './updater'
 log.initialize()
 Object.assign(console, log.functions)
 
+// Runners do GitHub Actions (Windows) são VMs sem GPU real — o processo de
+// GPU do Chromium crasha e derruba a janela silenciosamente, travando os
+// testes e2e em "Target page, context or browser has been closed". CI=true
+// é setado automaticamente pelo Actions; nunca afeta o app instalado pelo usuário.
+if (process.env.CI) {
+  app.disableHardwareAcceleration()
+  app.commandLine.appendSwitch('disable-gpu')
+  app.commandLine.appendSwitch('disable-software-rasterizer')
+}
+
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
     width: 1440,
