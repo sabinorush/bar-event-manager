@@ -1,8 +1,12 @@
 import { BrowserWindow, ipcMain } from 'electron'
-import { autoUpdater } from 'electron-updater'
+// electron-updater é CJS puro — o Node não detecta `autoUpdater` como named
+// export via ESM interop, precisa importar o pacote inteiro e desestruturar.
+import electronUpdater from 'electron-updater'
 import log from 'electron-log/main'
 import { IpcChannels } from '@shared/ipc-contract'
 import type { UpdaterStatus } from '@shared/types'
+
+const { autoUpdater } = electronUpdater
 
 const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000
 
