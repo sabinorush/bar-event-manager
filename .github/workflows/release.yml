@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  # Dispara publicando uma tag de versão: git tag v0.1.2 && git push origin v0.1.2
+  push:
+    tags:
+      - 'v*'
+  # Ou manualmente pela aba Actions do GitHub, sem precisar de tag.
+  workflow_dispatch:
+
+# electron-builder precisa criar o Release e subir o instalador como asset.
+permissions:
+  contents: write
+
+jobs:
+  # Roda a mesma suíte de testes do CI antes de publicar — nunca builda/publica
+  # um instalador sem os testes passando primeiro.
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: test
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configura Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instala dependências (rebuilda better-sqlite3 via postinstall)
+        run: npm ci
+
+      - name: Build + publica no GitHub Releases
+        run: npm run release
+        env:
+          # electron-builder lê GH_TOKEN para publicar; o token automático do
+          # Actions (com permissions.contents=write acima) já tem acesso
+          # suficiente neste repo — não precisa cadastrar um PAT como secret.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

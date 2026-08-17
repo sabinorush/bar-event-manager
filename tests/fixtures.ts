@@ -36,6 +36,12 @@ export const test = base.extend<Fixtures>({
 
   appWindow: async ({ electronApp }, use) => {
     const appWindow = await electronApp.firstWindow()
+    // Força o viewport via CDP (Emulation.setDeviceMetricsOverride), independente
+    // do tamanho real da janela do SO — em runners de CI a tela/DPI virtual pode
+    // ser menor que os 1024px do breakpoint `lg`, o que derruba a nav pro modo
+    // mobile (hambúrguer) e trava os testes esperando botões que só existem na
+    // nav desktop.
+    await appWindow.setViewportSize({ width: 1440, height: 900 })
     // espera o loadAll() do useAppStore resolver e sair da tela de "Carregando..."
     await appWindow.waitForSelector('text=Carregando dados do bar...', { state: 'detached', timeout: 15_000 })
     await use(appWindow)
