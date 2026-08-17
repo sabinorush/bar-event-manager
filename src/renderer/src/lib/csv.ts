@@ -6,7 +6,14 @@ import type { Ingredient, IngredientCategory, ShoppingListItem } from '@shared/t
  * separa os campos errado, já que `,` também é o separador decimal daqui).
  */
 function csvField(value: string | number): string {
-  const text = typeof value === 'number' ? value.toFixed(2).replace('.', ',') : value
+  // Prefixa com apóstrofo valores que começam com =, +, -, @, tab ou CR:
+  // Excel/Sheets interpretam essas células como fórmula ao abrir o CSV,
+  // o que permite injeção de fórmula (CWE-1236) via nome/fornecedor de
+  // ingrediente digitado pelo usuário.
+  let text = typeof value === 'number' ? value.toFixed(2).replace('.', ',') : value
+  if (/^[=+\-@\t\r]/.test(text)) {
+    text = `'${text}`
+  }
   if (/[";\n]/.test(text)) {
     return `"${text.replace(/"/g, '""')}"`
   }

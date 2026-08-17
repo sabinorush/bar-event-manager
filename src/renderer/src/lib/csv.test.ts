@@ -64,4 +64,23 @@ describe('buildShoppingListCsv', () => {
     const csv = buildShoppingListCsv({}, ingredients, categoryOrder, categoryTranslations)
     expect(csv.split('\r\n')).toHaveLength(1)
   })
+
+  it('neutraliza formula injection prefixando valores que começam com =, +, -, @ com apóstrofo', () => {
+    const formulaIngredient: Ingredient = {
+      id: 'evil-1',
+      name: '=CMD(\'calc\')',
+      category: 'Spirits',
+      supplier: '+SUM(1,1)',
+      costPerBottle: 10,
+      bottleSize: 700
+    }
+    const items: ShoppingListItem[] = [{ ingredientId: 'evil-1', totalMlNeeded: 100, bottlesNeeded: 1, totalCost: 10, purchased: false }]
+    const grouped = { Spirits: items }
+
+    const csv = buildShoppingListCsv(grouped, [formulaIngredient], categoryOrder, categoryTranslations)
+    const dataRow = csv.split('\r\n')[1]
+
+    expect(dataRow).toContain("'=CMD('calc')")
+    expect(dataRow).toContain("'+SUM(1,1)")
+  })
 })
