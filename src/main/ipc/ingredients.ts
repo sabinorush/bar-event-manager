@@ -3,7 +3,7 @@ import { randomUUID } from 'crypto'
 import { eq } from 'drizzle-orm'
 import { getDb } from '../db/client'
 import { ingredients, recipeIngredients, recipes } from '../db/schema'
-import { IdInputSchema, IngredientInputSchema, IpcChannels } from '@shared/ipc-contract'
+import { IdInputSchema, IngredientInputSchema, IngredientUpdateSchema, IpcChannels } from '@shared/ipc-contract'
 import type { Ingredient } from '@shared/types'
 import { rethrowFriendly } from './errors'
 
@@ -44,6 +44,25 @@ export function registerIngredientHandlers(): void {
       .run()
 
     const [row] = db.select().from(ingredients).where(eq(ingredients.id, id)).all()
+    return toIngredient(row)
+  })
+
+  ipcMain.handle(IpcChannels.ingredientsUpdate, (_event, payload): Ingredient => {
+    const input = IngredientUpdateSchema.parse(payload)
+    const db = getDb()
+
+    db.update(ingredients)
+      .set({
+        name: input.name,
+        category: input.category,
+        supplier: input.supplier,
+        costPerBottle: input.costPerBottle,
+        bottleSizeMl: input.bottleSize
+      })
+      .where(eq(ingredients.id, input.id))
+      .run()
+
+    const [row] = db.select().from(ingredients).where(eq(ingredients.id, input.id)).all()
     return toIngredient(row)
   })
 

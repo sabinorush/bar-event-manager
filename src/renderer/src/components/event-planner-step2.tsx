@@ -9,9 +9,10 @@ import { Label } from './ui/label'
 import { useAppStore } from '../store/useAppStore'
 import { eventFinancials } from '@shared/domain/margin'
 import { recipeCost } from '@shared/domain/cost'
+import { optimizeMixForProfit } from '@shared/domain/mix-optimizer'
 import type { CocktailMix, EventScope } from '@shared/types'
 import { formatCurrency } from '../lib/format'
-import { ArrowLeft, TrendingDown, TrendingUp, AlertTriangle, Martini, DollarSign, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, TrendingDown, TrendingUp, AlertTriangle, Martini, DollarSign, ShoppingCart, Wand2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 
 interface EventPlannerStep2Props {
@@ -60,6 +61,10 @@ export function EventPlannerStep2({ scope, onBack, onComplete }: EventPlannerSte
 
   const updatePercentage = (recipeId: string, percentage: number) => {
     setCocktailMix((prev) => prev.map((mix) => (mix.recipeId === recipeId ? { ...mix, percentage } : mix)))
+  }
+
+  const handleOptimizeMix = () => {
+    setCocktailMix(optimizeMixForProfit(selectedRecipes, recipes, ingredients))
   }
 
   const TrendIcon = getProfitTrend().icon
@@ -126,7 +131,19 @@ export function EventPlannerStep2({ scope, onBack, onComplete }: EventPlannerSte
           </Card>
 
           <Card className="p-6 bg-card border-border">
-            <h3 className="mb-4">Ajustar Distribuição do Mix</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3>Ajustar Distribuição do Mix</h3>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleOptimizeMix}
+                disabled={selectedRecipes.length === 0}
+                className="border-border hover:bg-secondary"
+              >
+                <Wand2 className="w-4 h-4 mr-2" />
+                Otimizar para Máx. Lucro
+              </Button>
+            </div>
 
             <div className="space-y-6">
               <AnimatePresence>
@@ -149,7 +166,10 @@ export function EventPlannerStep2({ scope, onBack, onComplete }: EventPlannerSte
                         <Label className="text-sm">{recipe.name}</Label>
                         <div className="flex items-center gap-3">
                           <span className="text-xs text-muted-foreground">{numberOfDrinks} drinks</span>
-                          <span className={`text-sm w-12 text-right ${mix.percentage > 0 ? 'text-primary' : 'text-muted-foreground'}`}>
+                          <span
+                            data-testid={`mix-percentage-${mix.recipeId}`}
+                            className={`text-sm w-12 text-right ${mix.percentage > 0 ? 'text-primary' : 'text-muted-foreground'}`}
+                          >
                             {mix.percentage}%
                           </span>
                         </div>

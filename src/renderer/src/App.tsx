@@ -229,7 +229,6 @@ export default function App() {
         <div className="container mx-auto px-6 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">© 2026 BarEvent Manager Pro. Todos os direitos reservados.</p>
-            <p className="text-sm text-muted-foreground">Powered by otimização de eventos por IA</p>
           </div>
         </div>
       </footer>

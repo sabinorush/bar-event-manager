@@ -24,6 +24,24 @@ test.describe('fluxo do Planejador de Eventos', () => {
     await expect(appWindow.getByText('Aniversário de Teste')).toBeVisible()
   })
 
+  test('botão Otimizar para Máx. Lucro redistribui o mix priorizando as receitas mais baratas', async ({ appWindow }) => {
+    await appWindow.getByRole('button', { name: 'Planejador de Eventos' }).click()
+    await appWindow.getByLabel('Nome do Evento').fill('Evento Otimização')
+    await appWindow.getByRole('button', { name: 'Continuar para Smart Mix' }).click()
+    await expect(appWindow.getByRole('heading', { name: 'Simulador Smart Mix' })).toBeVisible()
+
+    // mix padrão: Negroni 30% / Margarita 40% (a mais cara) / Whiskey Sour 30%
+    await expect(appWindow.getByTestId('mix-percentage-margarita')).toHaveText('40%')
+
+    await appWindow.getByRole('button', { name: 'Otimizar para Máx. Lucro' }).click()
+
+    // continua somando 100%, e a Margarita (receita mais cara) perde participação
+    await expect(appWindow.getByText('100%')).toBeVisible()
+    const margaritaShare = await appWindow.getByTestId('mix-percentage-margarita').textContent()
+    expect(margaritaShare).not.toBe('40%')
+    expect(Number(margaritaShare?.replace('%', ''))).toBeLessThan(40)
+  })
+
   test('marcar um item como comprado na Lista de Compras atualiza o contador', async ({ appWindow }) => {
     await appWindow.getByRole('button', { name: 'Planejador de Eventos' }).click()
     await appWindow.getByLabel('Nome do Evento').fill('Evento Checkbox')

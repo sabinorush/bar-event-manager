@@ -27,6 +27,43 @@ test.describe('ingredientes (IPC)', () => {
     expect(result.foundAfterDelete).toBe(false)
   })
 
+  test('atualiza um ingrediente existente e reflete no custo/ml', async ({ appWindow }) => {
+    const result = await appWindow.evaluate(async () => {
+      const created = await window.api.ingredients.create({
+        name: 'Ingrediente Original',
+        category: 'Mixers',
+        supplier: 'Fornecedor Original',
+        costPerBottle: 10,
+        bottleSize: 500
+      })
+
+      const updated = await window.api.ingredients.update({
+        ...created,
+        name: 'Ingrediente Editado',
+        supplier: 'Fornecedor Editado',
+        costPerBottle: 20,
+        bottleSize: 1000
+      })
+
+      const afterUpdate = await window.api.ingredients.list()
+      await window.api.ingredients.delete(created.id)
+
+      return {
+        updatedName: updated.name,
+        updatedSupplier: updated.supplier,
+        updatedCostPerBottle: updated.costPerBottle,
+        updatedBottleSize: updated.bottleSize,
+        persistedInList: afterUpdate.find((i) => i.id === created.id)
+      }
+    })
+
+    expect(result.updatedName).toBe('Ingrediente Editado')
+    expect(result.updatedSupplier).toBe('Fornecedor Editado')
+    expect(result.updatedCostPerBottle).toBe(20)
+    expect(result.updatedBottleSize).toBe(1000)
+    expect(result.persistedInList?.name).toBe('Ingrediente Editado')
+  })
+
   test('bloqueia apagar um ingrediente usado numa receita, citando o nome da receita', async ({ appWindow }) => {
     // regressão do bug corrigido: antes disso, a Promise rejeitava sem
     // mensagem e a UI travava em "Carregando..." sem nenhum aviso

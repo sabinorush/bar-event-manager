@@ -1,19 +1,17 @@
 import { useState } from 'react'
 import { Card } from './ui/card'
 import { Input } from './ui/input'
-import { Label } from './ui/label'
 import { Button } from './ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table'
 import { Badge } from './ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Search, Edit, Trash2, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCurrency, formatCurrencyPrecise } from '../lib/format'
 import { costPerMl } from '@shared/domain/cost'
-import type { IngredientCategory } from '@shared/types'
+import type { Ingredient, IngredientCategory } from '@shared/types'
 import { motion } from 'motion/react'
 import { useAppStore } from '../store/useAppStore'
+import { IngredientFormDialog } from './ingredient-form-dialog'
 
 const categoryColors: Record<IngredientCategory, string> = {
   Spirits: 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/50',
@@ -33,25 +31,23 @@ const categoryTranslations: Record<IngredientCategory, string> = {
   Garnish: 'Guarnições'
 }
 
-const categoryOptions = Object.keys(categoryTranslations) as IngredientCategory[]
-
-const emptyForm = {
-  name: '',
-  category: 'Spirits' as IngredientCategory,
-  supplier: '',
-  costPerBottle: '',
-  bottleSize: ''
-}
-
 export function InventoryTable() {
   const inventoryItems = useAppStore((s) => s.ingredients)
-  const createIngredient = useAppStore((s) => s.createIngredient)
   const deleteIngredient = useAppStore((s) => s.deleteIngredient)
 
   const [searchQuery, setSearchQuery] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [form, setForm] = useState(emptyForm)
-  const [isSaving, setIsSaving] = useState(false)
+  const [editingIngredient, setEditingIngredient] = useState<Ingredient | undefined>(undefined)
+
+  const openCreateDialog = () => {
+    setEditingIngredient(undefined)
+    setDialogOpen(true)
+  }
+
+  const openEditDialog = (ingredient: Ingredient) => {
+    setEditingIngredient(ingredient)
+    setDialogOpen(true)
+  }
 
   const filteredItems = inventoryItems.filter(
     (item) =>
@@ -69,33 +65,6 @@ export function InventoryTable() {
     }
   }
 
-  const canSubmit =
-    form.name.trim().length > 0 &&
-    form.supplier.trim().length > 0 &&
-    Number(form.costPerBottle) > 0 &&
-    Number(form.bottleSize) > 0
-
-  const handleSubmit = async () => {
-    if (!canSubmit) return
-    setIsSaving(true)
-    try {
-      await createIngredient({
-        name: form.name.trim(),
-        category: form.category,
-        supplier: form.supplier.trim(),
-        costPerBottle: Number(form.costPerBottle),
-        bottleSize: Number(form.bottleSize)
-      })
-      setForm(emptyForm)
-      setDialogOpen(false)
-      toast.success('Ingrediente adicionado.')
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Não foi possível adicionar o ingrediente.')
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -103,7 +72,7 @@ export function InventoryTable() {
           <h1>Gestão de Inventário</h1>
           <p className="text-muted-foreground mt-1">Gerencie seus ingredientes e suprimentos do bar</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => setDialogOpen(true)}>
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={openCreateDialog}>
           <Plus className="w-4 h-4 mr-2" />
           Adicionar Ingrediente
         </Button>
@@ -158,7 +127,12 @@ export function InventoryTable() {
                   <TableCell className="text-right">{formatCurrencyPrecise(costPerMl(item))}</TableCell>
                   <TableCell>
                     <div className="flex items-center justify-center gap-2">
-                      <Button variant="ghost" size="sm" className="hover:bg-primary/20 hover:text-primary transition-all">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEditDialog(item)}
+                        className="hover:bg-primary/20 hover:text-primary transition-all"
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button
@@ -201,102 +175,7 @@ export function InventoryTable() {
         </Card>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-background border-border">
-          <DialogHeader>
-            <DialogTitle>Adicionar Ingrediente</DialogTitle>
-            <DialogDescription>Cadastre um novo ingrediente no inventário do bar.</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="ing-name" className="mb-2">
-                Nome
-              </Label>
-              <Input
-                id="ing-name"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="bg-background border-border"
-                placeholder="Ex.: Tanqueray London Dry Gin"
-              />
-            </div>
-
-            <div>
-              <Label className="mb-2">Categoria</Label>
-              <Select value={form.category} onValueChange={(value) => setForm((f) => ({ ...f, category: value as IngredientCategory }))}>
-                <SelectTrigger className="bg-background border-border">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryOptions.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {categoryTranslations[category]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="ing-supplier" className="mb-2">
-                Fornecedor
-              </Label>
-              <Input
-                id="ing-supplier"
-                value={form.supplier}
-                onChange={(e) => setForm((f) => ({ ...f, supplier: e.target.value }))}
-                className="bg-background border-border"
-                placeholder="Ex.: Premium Spirits Co."
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="ing-cost" className="mb-2">
-                  Custo/Garrafa (R$)
-                </Label>
-                <Input
-                  id="ing-cost"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.costPerBottle}
-                  onChange={(e) => setForm((f) => ({ ...f, costPerBottle: e.target.value }))}
-                  className="bg-background border-border"
-                />
-              </div>
-              <div>
-                <Label htmlFor="ing-size" className="mb-2">
-                  Tamanho (ml)
-                </Label>
-                <Input
-                  id="ing-size"
-                  type="number"
-                  min="0"
-                  step="1"
-                  value={form.bottleSize}
-                  onChange={(e) => setForm((f) => ({ ...f, bottleSize: e.target.value }))}
-                  className="bg-background border-border"
-                />
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} className="border-border hover:bg-secondary">
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!canSubmit || isSaving}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              {isSaving ? 'Salvando...' : 'Adicionar'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <IngredientFormDialog open={dialogOpen} onOpenChange={setDialogOpen} ingredient={editingIngredient} />
     </div>
   )
 }

@@ -12,6 +12,7 @@ interface AppState {
 
   loadAll: () => Promise<void>
   createIngredient: (input: Omit<Ingredient, 'id'>) => Promise<void>
+  updateIngredient: (input: Ingredient) => Promise<void>
   deleteIngredient: (id: string) => Promise<void>
   createRecipe: (input: Omit<Recipe, 'id'>) => Promise<void>
   updateRecipe: (input: Recipe) => Promise<void>
@@ -50,6 +51,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   createIngredient: async (input) => {
     const created = await window.api.ingredients.create(input)
     set({ ingredients: [...get().ingredients, created] })
+  },
+
+  updateIngredient: async (input) => {
+    const updated = await window.api.ingredients.update(input)
+    set({ ingredients: get().ingredients.map((i) => (i.id === updated.id ? updated : i)) })
   },
 
   deleteIngredient: async (id) => {

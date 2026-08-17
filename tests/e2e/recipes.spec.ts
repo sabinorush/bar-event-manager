@@ -26,6 +26,27 @@ test.describe('Receitas', () => {
     await expect(appWindow.getByText('Drink de Teste')).toBeVisible()
   })
 
+  test('edita uma receita existente pelo diálogo e o grid reflete os novos valores', async ({ appWindow }) => {
+    await appWindow.getByRole('button', { name: 'Receitas' }).click()
+    await appWindow.getByPlaceholder('Buscar receitas por nome ou categoria...').fill('Margarita')
+
+    const card = appWindow.locator('[data-slot="card"]', { hasText: 'Margarita' })
+    await card.getByRole('button').first().click() // botão de editar (Edit), o primeiro do card
+
+    await expect(appWindow.getByRole('heading', { name: 'Editar Receita' })).toBeVisible()
+    // o formulário deve vir pré-preenchido com os dados atuais
+    await expect(appWindow.locator('#recipe-name')).toHaveValue('Margarita')
+
+    await appWindow.locator('#recipe-name').fill('Margarita Editada')
+    await appWindow.locator('#recipe-glass').fill('Taça Margarita')
+
+    await appWindow.getByRole('button', { name: 'Salvar Alterações' }).click()
+
+    await expect(appWindow.getByText('Receita atualizada.')).toBeVisible()
+    await expect(appWindow.getByText('Margarita Editada')).toBeVisible()
+    await expect(appWindow.getByText('Copo: Taça Margarita')).toBeVisible()
+  })
+
   test('bloqueia apagar uma receita usada em eventos', async ({ appWindow }) => {
     await appWindow.getByRole('button', { name: 'Receitas' }).click()
     await appWindow.getByPlaceholder('Buscar receitas por nome ou categoria...').fill('Negroni')
