@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { IpcRendererEvent } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import { IpcChannels } from '@shared/ipc-contract'
 import type {
@@ -10,7 +11,8 @@ import type {
   Ingredient,
   Recipe,
   SaveTextFileResult,
-  ShoppingListItem
+  ShoppingListItem,
+  UpdaterStatus
 } from '@shared/types'
 
 const api = {
@@ -46,6 +48,14 @@ const api = {
     forEvent: (eventId: string): Promise<ShoppingListItem[]> => ipcRenderer.invoke(IpcChannels.shoppingListForEvent, { id: eventId }),
     togglePurchased: (input: { eventId: string; ingredientId: string; purchased: boolean }): Promise<ShoppingListItem> =>
       ipcRenderer.invoke(IpcChannels.shoppingListTogglePurchased, input)
+  },
+  updater: {
+    onStatus: (callback: (status: UpdaterStatus) => void): (() => void) => {
+      const listener = (_event: IpcRendererEvent, status: UpdaterStatus): void => callback(status)
+      ipcRenderer.on(IpcChannels.updaterStatus, listener)
+      return () => ipcRenderer.removeListener(IpcChannels.updaterStatus, listener)
+    },
+    installNow: (): Promise<void> => ipcRenderer.invoke(IpcChannels.updaterInstallNow)
   }
 }
 

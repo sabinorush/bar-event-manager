@@ -77,5 +77,7 @@ export const IpcChannels = {
   dashboardTimeseries: 'dashboard:timeseries',
   filesSaveText: 'files:save-text',
   shoppingListForEvent: 'shopping-list:for-event',
-  shoppingListTogglePurchased: 'shopping-list:toggle-purchased'
+  shoppingListTogglePurchased: 'shopping-list:toggle-purchased',
+  updaterStatus: 'updater:status',
+  updaterInstallNow: 'updater:install-now'
 } as const

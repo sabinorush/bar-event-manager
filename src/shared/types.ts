@@ -95,3 +95,12 @@ export interface ShoppingListItem {
   totalCost: number
   purchased: boolean
 }
+
+/** Estado do ciclo de vida de uma checagem de atualização (electron-updater), enviado do main pro renderer. */
+export type UpdaterStatus =
+  | { state: 'checking' }
+  | { state: 'available'; version: string }
+  | { state: 'not-available' }
+  | { state: 'downloading'; percent: number }
+  | { state: 'downloaded'; version: string }
+  | { state: 'error'; message: string }

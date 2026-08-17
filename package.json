@@ -22,7 +22,8 @@
     "test:unit:watch": "vitest",
     "test:integration": "electron-vite build && playwright test tests/integration",
     "test:e2e": "electron-vite build && playwright test tests/e2e",
-    "dist": "electron-vite build && electron-builder --win"
+    "dist": "electron-vite build && electron-builder --win",
+    "release": "electron-vite build && electron-builder --win --publish always"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",

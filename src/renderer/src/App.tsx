@@ -8,6 +8,7 @@ import { ShoppingList } from './components/shopping-list'
 import { ScenarioComparisonModal } from './components/scenario-comparison-modal'
 import { Button } from './components/ui/button'
 import { Toaster } from './components/ui/sonner'
+import { UpdateNotifier } from './components/update-notifier'
 import { LayoutDashboard, Package, Wine, Calendar, Menu, X, Sparkles, Loader2, AlertTriangle } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import type { CocktailMix, EventScope } from '@shared/types'
@@ -234,6 +235,7 @@ export default function App() {
       </footer>
 
       <Toaster />
+      <UpdateNotifier />
     </div>
   )
 }

@@ -2,6 +2,13 @@ appId: com.barevent.manager
 productName: BarEvent Manager Pro
 copyright: Copyright © 2026 BarEvent Manager Pro
 
+# Fonte do auto-update (electron-updater). Repo público — GH_TOKEN só é
+# necessário localmente/CI ao publicar (`npm run release`), não em runtime.
+publish:
+  provider: github
+  owner: sabinorush
+  repo: bar-event-manager
+
 directories:
   buildResources: build
   output: dist

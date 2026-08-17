@@ -4,11 +4,12 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import log from 'electron-log/main'
 import { runMigrations } from './db/migrate'
 import { registerIpcHandlers } from './ipc'
+import { initAutoUpdater } from './updater'
 
 log.initialize()
 Object.assign(console, log.functions)
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -43,6 +44,8 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  return mainWindow
 }
 
 app.whenReady().then(() => {
@@ -65,7 +68,8 @@ app.whenReady().then(() => {
     return
   }
 
-  createWindow()
+  const mainWindow = createWindow()
+  if (!is.dev) initAutoUpdater(mainWindow)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
