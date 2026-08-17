@@ -11,5 +11,9 @@ export default defineConfig({
   // entre os 2 workers no primeiro launch em paralelo ("Process failed to
   // launch!"). Local a máquina já tem o binário em cache, então não precisa.
   retries: process.env.CI ? 1 : 0,
-  reporter: 'list'
+  reporter: 'list',
+  use: {
+    screenshot: 'only-on-failure',
+    trace: 'retain-on-failure'
+  }
 })
