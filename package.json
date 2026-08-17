@@ -1,7 +1,7 @@
 {
   "name": "bar-event-manager-pro",
   "productName": "BarEvent Manager Pro",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Gestão de bar para eventos — precificação, receitas e inventário",
   "private": true,
   "type": "module",
