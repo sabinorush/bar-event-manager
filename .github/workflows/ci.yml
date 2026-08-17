@@ -29,6 +29,9 @@ jobs:
       - name: Instala dependências (rebuilda better-sqlite3 via postinstall)
         run: npm ci
 
+      - name: Garante o binário do Electron já resolvido (evita corrida entre workers paralelos do Playwright no primeiro launch)
+        run: node -e "require('electron')"
+
       - name: Typecheck
         run: npm run typecheck
 
