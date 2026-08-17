@@ -19,6 +19,7 @@ const api = {
   ingredients: {
     list: (): Promise<Ingredient[]> => ipcRenderer.invoke(IpcChannels.ingredientsList),
     create: (input: Omit<Ingredient, 'id'>): Promise<Ingredient> => ipcRenderer.invoke(IpcChannels.ingredientsCreate, input),
+    update: (input: Ingredient): Promise<Ingredient> => ipcRenderer.invoke(IpcChannels.ingredientsUpdate, input),
     delete: (id: string): Promise<{ id: string }> => ipcRenderer.invoke(IpcChannels.ingredientsDelete, { id })
   },
   recipes: {

@@ -13,6 +13,10 @@ export const IngredientInputSchema = z.object({
   bottleSize: z.number().positive()
 })
 
+export const IngredientUpdateSchema = IngredientInputSchema.extend({
+  id: z.string().min(1)
+})
+
 export const RecipeIngredientInputSchema = z.object({
   ingredientId: z.string().min(1),
   amount: z.number().positive()
@@ -66,6 +70,7 @@ export const TogglePurchasedInputSchema = z.object({
 export const IpcChannels = {
   ingredientsList: 'ingredients:list',
   ingredientsCreate: 'ingredients:create',
+  ingredientsUpdate: 'ingredients:update',
   ingredientsDelete: 'ingredients:delete',
   recipesList: 'recipes:list',
   recipesCreate: 'recipes:create',
