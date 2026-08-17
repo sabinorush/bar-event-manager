@@ -9,6 +9,14 @@ import { initAutoUpdater } from './updater'
 log.initialize()
 Object.assign(console, log.functions)
 
+// Runners do GitHub Actions (Windows) são VMs sem GPU real. CI=true é setado
+// automaticamente pelo Actions; nunca afeta o app instalado pelo usuário.
+if (process.env.CI) {
+  app.disableHardwareAcceleration()
+  app.commandLine.appendSwitch('disable-gpu')
+  app.commandLine.appendSwitch('disable-software-rasterizer')
+}
+
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
     width: 1440,
@@ -26,7 +34,12 @@ function createWindow(): BrowserWindow {
       preload: join(__dirname, '../preload/index.cjs'),
       sandbox: true,
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      // Sem isso, o runner do CI (sem foco real de desktop) throttla
+      // requestAnimationFrame — as animações de entrada (motion/react) nunca
+      // terminam, elementos ficam fora da posição final, e os cliques do
+      // Playwright travam até o timeout esperando "actionability".
+      ...(process.env.CI ? { backgroundThrottling: false } : {})
     }
   })
 

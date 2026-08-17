@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  # Permite que o workflow de release (release.yml) reuse este job de teste
+  # como gate antes de publicar, sem duplicar os passos.
+  workflow_call:
+
+jobs:
+  test:
+    # windows-latest e não ubuntu: better-sqlite3 é módulo nativo recompilado
+    # no postinstall (electron-rebuild) e o alvo de produção é Windows (NSIS) —
+    # rodar os testes no mesmo SO evita "passou no CI, quebrou no instalador".
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configura Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instala dependências (rebuilda better-sqlite3 via postinstall)
+        run: npm ci
+
+      - name: Garante o binário do Electron já resolvido (evita corrida entre workers paralelos do Playwright no primeiro launch)
+        run: node -e "require('electron')"
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Testes unitários
+        run: npm run test:unit
+
+      - name: Build de produção (usado pelos testes de integração e e2e)
+        run: npm run build
+
+      - name: Testes de integração (IPC, Electron real)
+        run: npx playwright test tests/integration
+
+      - name: Testes e2e (UI, Electron real)
+        run: npx playwright test tests/e2e
+
+      - name: Publica relatório do Playwright em caso de falha
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: test-results/
+          retention-days: 7
